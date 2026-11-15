@@ -489,9 +489,8 @@ java -jar target/position-book-1.0.0.jar --logging.level.com.bank.positionbook=D
 ```
 position-book/
 ├── pom.xml                              Maven build, dependencies, JaCoCo gate
-├── README.md                            This file
+├── README.md                            This file contants project setup , structure and executions tech stack and swagger api definitions etc
 ├── readme.txt                           Assumptions and rationale
-├── docs/NAMING_CONVENTIONS.md           Naming rules for classes, methods, variables and APIs
 ├── .gitignore
 └── src/
     ├── main/
