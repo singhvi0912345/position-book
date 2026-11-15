@@ -98,8 +98,7 @@ If you received a zip file, extract it and open a terminal in the extracted `pos
 If you clone from a repository instead:
 
 ```
-git clone <repository-url> position-book
-cd position-book
+git clone https://github.com/singhvi0912345/position-book.git
 ```
 
 Every command in this README runs from that project folder.
