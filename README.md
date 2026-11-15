@@ -92,10 +92,7 @@ Installation references for each platform:
 - Maven: https://maven.apache.org/install.html
 
 ## 4. Getting the code
-
-If you received a zip file, extract it and open a terminal in the extracted `position-book` folder. The folder must contain `pom.xml` at its top level.
-
-If you clone from a repository instead:
+If you clone from a repository:
 
 ```
 git clone https://github.com/singhvi0912345/position-book.git
@@ -385,24 +382,7 @@ The same four scenarios run automatically as tests, so you do not need to repeat
 
 ## 10. Business rules and assumptions
 
-The exercise specification leaves some behaviour open. The complete assumptions, with rationale and the code that enforces each one, are in `readme.txt` at the project root. The table below summarises them.
-
-| # | Topic | Behaviour |
-|---|---|---|
-| A1 | Event ID | Positive integer. BUY and SELL IDs are unique. A CANCEL reuses its target's ID. |
-| A2 | Duplicate ID | A BUY or SELL with an ID already in use returns 409. The ID stays reserved after cancellation. |
-| A3 | Cancel target | Must exist, must be a BUY or SELL, and must not already be cancelled. |
-| A4 | Cancel of a cancel | Not possible. |
-| A5 | Cancel account and security | Quantity is ignored. If supplied, the account and security must match the target (otherwise 422). If omitted, the target's values are used. |
-| A6 | Negative positions | Allowed. A SELL may exceed holdings and produce a short position. |
-| A7 | Quantity | Integer from 1 to 1,000,000,000 for BUY and SELL. |
-| A8 | Unknown position | 404 when no event has referenced the pair. A flat position returns 200 with quantity 0. |
-| A9 | Drilldown | Every event for the pair in arrival order, including cancelled originals and CANCEL records. |
-| A10 | Identifiers | 1 to 20 characters from letters, digits, `-` and `_`. Case-sensitive. |
-| A11 | Ordering | Events are applied in arrival order. No timestamps are needed. |
-| A12 | Deployment | Single instance. A restart discards all state. |
-
-If any of these choices does not match what you expected, change the corresponding code and tests. The rules are in `engine/PositionBook.java` and `model/Position.java`.
+The exercise specification leaves some behaviour open. The complete assumptions, with rationale and the code that enforces each one, are in `readme.txt` at the project root.  The rules are in `engine/PositionBook.java` and `model/Position.java`.
 
 ## 11. Validation rules
 
@@ -563,11 +543,3 @@ $env:Path = "$env:JAVA_HOME\bin;$env:Path"
 **Positions disappear after a restart.** This is expected. The store is in memory only, as the specification requires.
 
 **Tests fail with a coverage message even though all tests pass.** The JaCoCo gate failed. Look for the lines reported as uncovered in `target/site/jacoco/index.html` and add tests for them.
-
-## 17. Limitations
-
-- All state is lost when the application stops.
-- A single instance only. Two running copies do not share data.
-- Writes are serialised by one lock. This is simple and correct, but it limits throughput under very heavy write load.
-- There is no authentication or authorisation. Add Spring Security before exposing the service beyond a trusted network.
-- Timestamps are not recorded, so the drilldown reflects arrival order only.

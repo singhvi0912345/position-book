@@ -28,6 +28,7 @@ ASSUMPTIONS
      carry the same ID as its target. Global uniqueness lets every cancel
      resolve to exactly one trade without needing the account in the request.
    - Enforced in: engine/PositionBook.java (recordTrade and cancelTrade).
+   - To confirm: are event IDs unique across all accounts, or only within one account?
 
 3. A BUY or SELL whose ID is already in use is rejected with HTTP 409 Conflict.
    - The ID stays reserved after the original event is cancelled.
@@ -63,6 +64,8 @@ ASSUMPTIONS
    - Enforced in: api/dto/TradeEventRequest.java (format only),
      api/dto/ValidTradeEventValidator.java (a CANCEL is exempt from the BUY and
      SELL rules) and engine/PositionBook.java (the mismatch checks).
+     To confirm: should a cancel whose account or security differs from its target
+     be rejected, or silently corrected?
 
 7. Net positions may be negative.
    - A SELL larger than the current holding is accepted and creates a short
@@ -71,6 +74,7 @@ ASSUMPTIONS
      forbid it.
    - To change this, reject the SELL in engine/PositionBook.java when the
      resulting net would be below zero.
+   - To confirm: should short (negative) positions be allowed?
 
 8. For BUY and SELL, the quantity must be a whole number from 1 to
    1,000,000,000 inclusive.
@@ -86,6 +90,8 @@ ASSUMPTIONS
      drilldown.
    - Reason: this separates "never traded" from "traded and now flat", which
      is useful information in a position book.
+   - To confirm: should a never-traded position return 404, or a zero-quantity
+     position?
 
 10. The drilldown lists every event for the pair in arrival order.
     - It includes the original BUY or SELL, marked cancelled=true once it is
@@ -135,20 +141,20 @@ ASSUMPTIONS
       Spring Boot supports natively.
     - Enforced in: api/error/GlobalExceptionHandler.java.
 
+17. No throughput or latency target was specified.
+    - The solution targets correctness and simplicity, using one writer lock.
+      This is adequate for the exercise, because each event is a small
+      in-memory update that holds the lock for microseconds.
+    - To confirm: the expected events per second at peak, the acceptable
+      response time for a submission, and the number of trading accounts
+      active in parallel. These figures decide whether the work must be
+      partitioned by trading account, as described in section 5.10 of the
+      design document.
+    - Enforced in: store/InMemoryPositionBookStore.java.
 
-OPEN QUESTIONS FOR THE INTERVIEWER
-----------------------------------
-
-These questions would change the design if the answers differ from the
-assumptions above.
-
-  Q1. Should short (negative) positions be allowed? (point 7)
-  Q2. Should a never-traded position return 404 or a zero-quantity position?
-      (point 9)
-  Q3. Should a CANCEL with a mismatched account or security be rejected or
-      silently corrected? (point 6)
-  Q4. Are event IDs unique across all accounts, or only within one account?
-      (point 2)
-  Q5. What throughput and latency are expected? A single writer lock is
-      sufficient for the exercise but may not be for production. (point 15)
-  Q6. Is authentication required? The current solution has none.
+18. The service has no authentication.
+    - Any client that can reach the service can submit events and read
+      positions.
+    - To confirm: whether authentication is required. The options are HTTP
+      Basic, an API key, a JWT bearer token, or OAuth2 with an identity
+      provider.
